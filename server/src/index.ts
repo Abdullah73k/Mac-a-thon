@@ -12,6 +12,8 @@ import { discordController } from "./modules/discord";
 import { discordWs } from "./modules/discord/ws";
 import { discordClient } from "./modules/discord/client/discord-client";
 import { DISCORD_AUTO_START } from "../constants/discord.constants";
+import { testingController } from "./modules/testing";
+import { testingWs } from "./modules/testing/ws";
 
 // Initialize action handlers and state observer before starting the server
 registerAllActions();
@@ -32,6 +34,8 @@ const app = new Elysia()
 	.use(agentController)
 	.use(discordController)
 	.use(discordWs)
+	.use(testingController)
+	.use(testingWs)
 	.listen(3000);
 
 console.log(
@@ -40,6 +44,8 @@ console.log(
 
 console.log("[Testing Agent System] Initialized with 6 behavioral profiles");
 console.log("[Testing Agent System] API endpoints available at /api/agents");
+console.log("[Test Orchestration] API endpoints available at /api/tests");
+console.log("[Test Orchestration] WebSocket available at /ws/tests");
 
 // Optionally auto-start the Discord bot
 if (DISCORD_AUTO_START) {
