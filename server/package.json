@@ -6,13 +6,18 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@discordjs/voice": "^0.19.0",
     "@elysiajs/cors": "^1.4.1",
     "@elysiajs/openapi": "^1.4.14",
     "@openrouter/ai-sdk-provider": "^2.1.1",
     "ai": "^6.0.77",
+    "discord.js": "^14.25.1",
+    "elevenlabs": "^1.59.0",
     "elysia": "latest",
+    "libsodium-wrappers": "^0.8.2",
     "mineflayer": "^4.34.0",
     "mineflayer-pathfinder": "^2.4.5",
+    "opusscript": "^0.1.1",
     "vec3": "^0.1.10",
     "zod": "^4.3.6"
   },
