@@ -24,14 +24,14 @@ import {
   isTTSConfigured,
 } from "./voice/tts-handler";
 import { resample24kMonoTo48kStereo } from "./voice/audio-player";
-import type { ServiceResult, VoiceConnectionState } from "./types";
+import type { DiscordBotStatus, ServiceResult, VoiceConnectionState } from "./types";
 
 // ---------------------------------------------------------------------------
 // Response types
 // ---------------------------------------------------------------------------
 
 interface BotStatusData {
-  status: string;
+  status: DiscordBotStatus;
   guilds: string[];
   voiceConnections: VoiceConnectionState[];
 }
