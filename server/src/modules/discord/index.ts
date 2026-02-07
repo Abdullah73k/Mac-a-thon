@@ -16,10 +16,12 @@ import {
   StopSpeakingBody,
   RegisterAgentBody,
   SpeakAsAgentBody,
+  CreateTestSessionBody,
   BotStatusResponse,
   VoiceConnectionResponse,
   SpeechResultResponse,
   AgentProfileResponse,
+  TestSessionResponse,
   DiscordSuccessResponse,
   DiscordErrorResponse,
 } from "./model";
@@ -36,10 +38,12 @@ export const discordController = new Elysia({
     "discord.stopSpeaking": StopSpeakingBody,
     "discord.registerAgent": RegisterAgentBody,
     "discord.speakAsAgent": SpeakAsAgentBody,
+    "discord.createTestSession": CreateTestSessionBody,
     "discord.botStatus": BotStatusResponse,
     "discord.voiceConnection": VoiceConnectionResponse,
     "discord.speechResult": SpeechResultResponse,
     "discord.agentProfile": AgentProfileResponse,
+    "discord.testSession": TestSessionResponse,
     "discord.success": DiscordSuccessResponse,
     "discord.error": DiscordErrorResponse,
   })
@@ -478,6 +482,82 @@ export const discordController = new Elysia({
         summary: "Stop Agent Speaking",
         description: "Stop the currently speaking agent and clear the speech queue.",
         tags: ["Discord Agents"],
+      },
+    },
+  )
+
+  // -------------------------------------------------------------------------
+  // POST /api/discord/channels/test-session -- Create test session channels
+  // -------------------------------------------------------------------------
+  .post(
+    "/channels/test-session",
+    async ({ body }) => {
+      const result = await DiscordService.createTestSession(
+        body.guildId,
+        body.testId,
+      );
+
+      if (!result.ok) {
+        return status(result.httpStatus as 503 | 500, {
+          success: false as const,
+          message: result.message,
+          code: result.code,
+        });
+      }
+
+      return result.data;
+    },
+    {
+      body: "discord.createTestSession",
+      response: {
+        200: "discord.testSession",
+        503: "discord.error",
+        500: "discord.error",
+      },
+      detail: {
+        summary: "Create Test Session Channels",
+        description:
+          "Create text and voice channels for a test session " +
+          "under a 'Tests' category. Channels are kept with a " +
+          "timestamp suffix for post-test review.",
+        tags: ["Discord Channels"],
+      },
+    },
+  )
+
+  // -------------------------------------------------------------------------
+  // GET /api/discord/channels/test-sessions/:guildId -- List test channels
+  // -------------------------------------------------------------------------
+  .get(
+    "/channels/test-sessions/:guildId",
+    ({ params }) => {
+      const result = DiscordService.listTestChannels(params.guildId);
+
+      if (!result.ok) {
+        return status(result.httpStatus as 503, {
+          success: false as const,
+          message: result.message,
+          code: result.code,
+        });
+      }
+
+      return result.data;
+    },
+    {
+      params: t.Object({
+        guildId: t.String({ minLength: 1 }),
+      }),
+      response: {
+        200: t.Object({
+          textChannels: t.Array(t.String()),
+          voiceChannels: t.Array(t.String()),
+        }),
+        503: "discord.error",
+      },
+      detail: {
+        summary: "List Test Channels",
+        description: "List all test session channels in a guild.",
+        tags: ["Discord Channels"],
       },
     },
   );

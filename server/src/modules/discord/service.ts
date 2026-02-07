@@ -34,12 +34,17 @@ import {
   getCurrentSpeaker,
   getQueueLength,
 } from "./voice/agent-voice-manager";
+import {
+  createTestSessionChannels,
+  getTestSessionChannels,
+} from "./client/channel-manager";
 import { discordEvents } from "./events/event-broadcaster";
 import type {
   AgentVoiceProfile,
   DiscordBotStatus,
   ServiceResult,
   SpeechResult,
+  TestSessionChannels,
   VoiceConnectionState,
 } from "./types";
 
@@ -389,5 +394,57 @@ export abstract class DiscordService {
         agentId,
       },
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // Test Session Channel Management
+  // -------------------------------------------------------------------------
+
+  /**
+   * Create text and voice channels for a test session.
+   */
+  static async createTestSession(
+    guildId: string,
+    testId: string,
+  ): Promise<ServiceResult<TestSessionChannels>> {
+    if (!discordClient.isReady()) {
+      return {
+        ok: false,
+        message: "Discord bot is not connected. Start the bot first.",
+        code: "BOT_NOT_READY",
+        httpStatus: 503,
+      };
+    }
+
+    try {
+      const channels = await createTestSessionChannels(guildId, testId);
+      return { ok: true, data: channels };
+    } catch (err) {
+      return {
+        ok: false,
+        message: err instanceof Error ? err.message : "Failed to create test channels",
+        code: "CHANNEL_CREATE_FAILED",
+        httpStatus: 500,
+      };
+    }
+  }
+
+  /**
+   * List test session channels in a guild.
+   */
+  static listTestChannels(
+    guildId: string,
+  ): ServiceResult<{ textChannels: string[]; voiceChannels: string[] }> {
+    if (!discordClient.isReady()) {
+      return {
+        ok: false,
+        message: "Discord bot is not connected. Start the bot first.",
+        code: "BOT_NOT_READY",
+        httpStatus: 503,
+      };
+    }
+
+    const channels = getTestSessionChannels(guildId);
+    return { ok: true, data: channels };
   }
 }
