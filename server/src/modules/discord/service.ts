@@ -24,6 +24,7 @@ import {
   isTTSConfigured,
 } from "./voice/tts-handler";
 import { resample24kMonoTo48kStereo } from "./voice/audio-player";
+import { discordEvents } from "./events/event-broadcaster";
 import type { DiscordBotStatus, ServiceResult, VoiceConnectionState } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,9 @@ export abstract class DiscordService {
   static async startBot(): Promise<ServiceResult<{ status: string }>> {
     try {
       await discordClient.start();
+      discordEvents.emitEvent("bot-status-changed", {
+        status: discordClient.getStatus(),
+      });
       return {
         ok: true,
         data: { status: discordClient.getStatus() },
@@ -72,6 +76,7 @@ export abstract class DiscordService {
   static async stopBot(): Promise<ServiceResult<{ status: string }>> {
     try {
       await discordClient.stop();
+      discordEvents.emitEvent("bot-status-changed", { status: "offline" });
       return {
         ok: true,
         data: { status: "offline" },
@@ -118,6 +123,7 @@ export abstract class DiscordService {
 
     try {
       const state = await joinVoiceChannel(guildId, channelId);
+      discordEvents.emitEvent("voice-joined", { guildId, channelId });
       return { ok: true, data: state };
     } catch (err) {
       return {
@@ -143,6 +149,8 @@ export abstract class DiscordService {
         httpStatus: 404,
       };
     }
+
+    discordEvents.emitEvent("voice-left", { guildId });
 
     return {
       ok: true,
@@ -187,6 +195,13 @@ export abstract class DiscordService {
     }
 
     try {
+      // Notify clients that speaking has started
+      discordEvents.emitEvent("speaking-started", {
+        guildId,
+        agentId: "default",
+        text,
+      });
+
       // Generate 24kHz mono PCM from ElevenLabs
       const pcm24k = await generateSpeech(text, { voiceId });
 
@@ -196,11 +211,25 @@ export abstract class DiscordService {
       // Play the audio
       const durationMs = await playAudio(guildId, pcm48k);
 
+      // Notify clients that speaking has ended
+      discordEvents.emitEvent("speaking-ended", {
+        guildId,
+        agentId: "default",
+        durationMs,
+      });
+
       return {
         ok: true,
         data: { success: true, durationMs },
       };
     } catch (err) {
+      // Ensure speaking-ended is sent even on failure
+      discordEvents.emitEvent("speaking-ended", {
+        guildId,
+        agentId: "default",
+        durationMs: 0,
+      });
+
       return {
         ok: false,
         message: err instanceof Error ? err.message : "Speech generation failed",
