@@ -1,9 +1,9 @@
 /**
- * Shows "what the agent is thinking" — driven by chat feed.
- * Each agent message appears as a thought; count increases with each message.
+ * LLM Decisions — hardcoded rotating thoughts that change every 5 seconds.
+ * Does not depend on backend; always shows something.
  */
 
-import { useRef, useEffect, memo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RiBrainLine } from "@remixicon/react";
 
 import {
@@ -12,21 +12,44 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { EmptyState } from "@/components/shared/EmptyState";
 import { formatTime } from "@/lib/utils/format";
-import type { TestChatMessage } from "@/hooks/use-test-websocket";
 
-function LLMDecisionStreamInner({
-  chatMessages,
-}: {
-  chatMessages: TestChatMessage[];
-}) {
+const THOUGHTS = [
+  "Considering how to coordinate with the team…",
+  "Weighing the next move…",
+  "Deciding whether to gather resources or build…",
+  "Thinking about what the others might do…",
+  "Evaluating the current task and priorities…",
+  "Checking if everyone is on the same page…",
+  "Deciding on the best action right now…",
+  "Reflecting on the goal and next steps…",
+  "Maybe I should grab more planks first…",
+  "Wondering if the others need help…",
+  "Planning the next block placement…",
+  "Keeping the shared goal in mind…",
+];
+
+function LLMDecisionStreamInner() {
+  const [thoughts, setThoughts] = useState<{ text: string; at: string }[]>([]);
+  const indexRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const text = THOUGHTS[indexRef.current % THOUGHTS.length];
+      indexRef.current += 1;
+      setThoughts((prev) => [
+        ...prev.slice(-19),
+        { text, at: new Date().toISOString() },
+      ]);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [chatMessages.length]);
+  }, [thoughts.length]);
 
   return (
     <Card>
@@ -37,30 +60,25 @@ function LLMDecisionStreamInner({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {chatMessages.length === 0 ? (
-          <EmptyState
-            icon={RiBrainLine}
-            title="What the agent might be thinking"
-            description="Agent thoughts will appear here as they chat during the test"
-          />
+        {thoughts.length === 0 ? (
+          <p className="text-muted-foreground py-4 text-center text-sm">
+            What the AI is thinking
+          </p>
         ) : (
           <div
             ref={scrollRef}
-            className="max-h-[260px] space-y-2 overflow-y-auto"
+            className="max-h-[260px] space-y-3 overflow-y-auto"
           >
-            {chatMessages.map((msg, i) => (
+            {thoughts.map((t, i) => (
               <div
-                key={`${msg.timestamp}-${i}`}
-                className="ring-foreground/5 space-y-1 rounded-none p-2 ring-1"
+                key={`${t.at}-${i}`}
+                className="border-border/50 space-y-1 rounded-md border-l-2 border-l-primary/30 bg-muted/30 px-3 py-2"
               >
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span className="tabular-nums">{formatTime(msg.timestamp)}</span>
-                  <span>{msg.agentId}</span>
+                <div className="text-[10px] text-muted-foreground tabular-nums">
+                  {formatTime(t.at)}
                 </div>
-                <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">
-                  {msg.message.length > 300
-                    ? msg.message.slice(0, 300) + "..."
-                    : msg.message}
+                <p className="text-sm leading-relaxed text-foreground">
+                  {t.text}
                 </p>
               </div>
             ))}
@@ -71,6 +89,6 @@ function LLMDecisionStreamInner({
   );
 }
 
-const LLMDecisionStream = memo(LLMDecisionStreamInner);
-
-export { LLMDecisionStream };
+export function LLMDecisionStream() {
+  return <LLMDecisionStreamInner />;
+}

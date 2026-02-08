@@ -16,7 +16,7 @@ function LiveMetricsPanel({
 }) {
   const decisionCount = llmDecisionsCount ?? metrics.decisionCount;
   return (
-    <div data-slot="live-metrics-panel" className="grid grid-cols-2 gap-2">
+    <div data-slot="live-metrics-panel" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       <MetricCard label="LLM Decisions" value={decisionCount} />
       <MetricCard
         label="Agent Actions"

@@ -48,7 +48,7 @@ function DiscordChatFeedInner({
         ) : (
           <div
             ref={scrollRef}
-            className="max-h-[260px] space-y-1.5 overflow-y-auto"
+            className="max-h-[320px] space-y-1.5 overflow-y-auto"
           >
             {messages.map((msg, i) => (
               <div

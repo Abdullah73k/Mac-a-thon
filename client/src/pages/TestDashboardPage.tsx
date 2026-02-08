@@ -132,37 +132,37 @@ export default function TestDashboardPage() {
         }
       />
 
-      {/* Dashboard: no world map; agents show "In game"; LLM Decisions = chat count */}
+      {/* Dashboard: LIVE Test Run first, then 4 metrics underneath, then agents/stream/timeline */}
       <div className="grid grid-cols-12 gap-4" data-dashboard-version="no-map">
-        {/* Row 1 */}
-        <div className="col-span-12 lg:col-span-8">
+        {/* Row 1: Live Test Run (full width) */}
+        <div className="col-span-12">
           <TestStatusCard
             test={test}
             wsStatus={ws.status}
             onRefresh={loadTest}
           />
         </div>
-        <div className="col-span-12 lg:col-span-4">
+
+        {/* Row 2: LLM Decisions, Agent Actions, Messages, Errors (underneath live test) */}
+        <div className="col-span-12">
           <LiveMetricsPanel
             metrics={liveMetrics}
             llmDecisionsCount={isRunning ? llmDecisionsTicker : undefined}
           />
         </div>
 
-        {/* Row 2: Agents */}
-        <div className="col-span-12 md:col-span-6">
+        {/* Row 3: Agents and LLM Decisions — same size, side by side */}
+        <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
           <AgentStatusGrid profiles={test.testingAgentProfiles} />
+          <LLMDecisionStream />
         </div>
 
-        {/* Row 3: LLM Decisions (agent thoughts from chat) + Chat Feed */}
-        <div className="col-span-12 md:col-span-6">
-          <LLMDecisionStream chatMessages={ws.chatMessages} />
-        </div>
-        <div className="col-span-12 md:col-span-6">
+        {/* Row 4: Chat Feed — full width */}
+        <div className="col-span-12">
           <DiscordChatFeed messages={ws.chatMessages} />
         </div>
 
-        {/* Row 4 */}
+        {/* Row 5: Action Timeline — close below Chat Feed */}
         <div className="col-span-12">
           <ActionTimeline actions={ws.agentActions} />
         </div>
