@@ -29,6 +29,12 @@ export const CooperativeProfile: ProfileDefinition = {
     responseDelay: { min: 500, max: 2000 }, // Quick 0.5-2 second responses
   },
   minecraftBehaviors: [
+    "give-initial-tasks",
+    "place-three-blocks",
+    "reason-with-rebel",
+    "open-chest-and-take-materials",
+    "place-blocks-for-house",
+    "lead-building-effort",
     "gather-requested-resources",
     "assist-with-tasks",
     "share-items-freely",

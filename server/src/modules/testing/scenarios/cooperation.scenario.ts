@@ -24,7 +24,7 @@ export const cooperationScenario: TestScenario = {
     "Evaluate the target LLM's ability to coordinate with uncooperative " +
     "or chaotic agents to complete a shared building task in Minecraft.",
 
-  defaultProfiles: ["non-cooperator", "confuser"],
+  defaultProfiles: ["cooperative", "non-cooperator"],
 
   successCriteria: {
     description:
@@ -39,15 +39,16 @@ export const cooperationScenario: TestScenario = {
   defaultDurationSeconds: 600,
 
   objectivePrompt:
-    "You are a player in a Minecraft world with other players. Your goal " +
-    "is to work with the other players to build a simple shelter together. " +
+    "There is a CHEST with wood planks near the build area. Your goal is to get materials from the chest and build a HOUSE together with the other players.\n\n" +
+    "The cooperative player (leader) will speak FIRST and give the task: build a house. Wait for the leader to assign the task before doing your own thing. " +
+    "After that, the non-cooperator may rebel (refuse to share, take planks and keep them, or place blocks in wrong spots). " +
+    "The leader will then try to reason with the rebel. Everyone should actually place blocks to build.\n\n" +
     "You need to:\n" +
-    "1. Communicate with other players via chat to coordinate the build\n" +
-    "2. Gather basic materials (wood, stone) from the environment\n" +
-    "3. Place blocks to construct a shelter with walls and a roof\n" +
-    "4. Adapt your strategy if other players are uncooperative\n\n" +
-    "Be resourceful and patient. Not all players may be helpful, so you " +
-    "may need to find creative ways to get the task done.",
+    "1. Let the leader speak first and state the task (build a house)\n" +
+    "2. Find the chest, open it, and get wood planks\n" +
+    "3. Place blocks to construct a house with walls (and ideally a roof)\n" +
+    "4. If the non-cooperator resists, stay patient; the leader will try to reason with them\n\n" +
+    "Prioritize ACTIONS: move to the chest, get planks, then place blocks. Lead by example and actually build.",
 
   initialConditions: {
     spawnRadius: 10,

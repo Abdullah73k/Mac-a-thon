@@ -155,7 +155,10 @@ export class TestRunner {
       testId,
       scenarioType: request.scenarioType,
       status: "created",
-      targetLlmModel: request.targetLlmModel ?? DEFAULT_LLM_MODEL,
+      targetLlmModel:
+        (typeof request.targetLlmModel === "string" && request.targetLlmModel.trim())
+          ? request.targetLlmModel.trim()
+          : DEFAULT_LLM_MODEL,
       testingAgentProfiles: profiles,
       testingAgentIds: [],
       targetAgentId: null,

@@ -29,6 +29,9 @@ export const NonCooperatorProfile: ProfileDefinition = {
     responseDelay: { min: 5000, max: 15000 }, // 5-15 second delays
   },
   minecraftBehaviors: [
+    "take-from-chest-but-keep",
+    "break-leader-blocks",
+    "sabotage-building",
     "collect-resources-selfishly",
     "avoid-helping-others",
     "work-on-own-tasks",

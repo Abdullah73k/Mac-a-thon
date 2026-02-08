@@ -101,9 +101,12 @@ export type TestRunModel = typeof TestRunSchema.static;
 // API Request Bodies
 // ---------------------------------------------------------------------------
 
+/** Optional string: allow undefined, null, or string (frontend may send null). */
+const OptionalString = t.Union([t.String(), t.Null()]);
+
 export const CreateTestRequestSchema = t.Object({
   scenarioType: ScenarioTypeSchema,
-  targetLlmModel: t.String({ minLength: 1 }),
+  targetLlmModel: t.Optional(t.Union([t.String(), t.Null()])), // empty/null defaulted in service to DEFAULT_LLM_MODEL
   testingAgentProfiles: t.Optional(
     t.Array(t.String(), { minItems: 1, maxItems: 5 })
   ),
@@ -120,12 +123,12 @@ export const CreateTestRequestSchema = t.Object({
       ),
       enableVoice: t.Optional(t.Boolean()),
       enableText: t.Optional(t.Boolean()),
-      targetLlmSystemPromptOverride: t.Optional(t.String()),
+      targetLlmSystemPromptOverride: t.Optional(OptionalString),
       minecraftServer: t.Optional(
         t.Object({
-          host: t.Optional(t.String()),
+          host: t.Optional(OptionalString),
           port: t.Optional(t.Number({ minimum: 1, maximum: 65535 })),
-          version: t.Optional(t.String()),
+          version: t.Optional(OptionalString),
         })
       ),
     })

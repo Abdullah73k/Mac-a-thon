@@ -169,7 +169,7 @@ export interface TestActionLog {
 /** Domain-level request to create a new test run. */
 export interface CreateTestRequest {
   scenarioType: ScenarioType;
-  targetLlmModel: string;
+  targetLlmModel?: string | null;
   testingAgentProfiles?: BehavioralProfile[];
   durationSeconds?: number;
   config?: Partial<TestRunConfig>;
