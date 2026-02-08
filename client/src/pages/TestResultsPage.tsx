@@ -156,10 +156,6 @@ export default function TestResultsPage() {
 
   const model = LLM_MODELS.find((m) => m.id === test.targetLlmModel);
   const mt = test.metrics;
-  const avgResponseMs =
-    mt.llmDecisionCount > 0
-      ? Math.round(mt.totalLlmResponseTimeMs / mt.llmDecisionCount)
-      : 0;
   const totalDuration =
     test.startedAt && test.endedAt
       ? Math.round(
@@ -209,14 +205,8 @@ export default function TestResultsPage() {
         </Card>
 
         {/* Metrics grid */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <MetricCard label="LLM Decisions" value={mt.llmDecisionCount} />
-          <MetricCard
-            label="Avg Response"
-            value={avgResponseMs}
-            suffix="ms"
-          />
-          <MetricCard label="Target Actions" value={mt.targetActionCount} />
           <MetricCard label="Agent Actions" value={mt.testingAgentActionCount} />
           <MetricCard
             label="Messages"

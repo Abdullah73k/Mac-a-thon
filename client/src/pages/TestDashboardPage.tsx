@@ -1,11 +1,9 @@
 /**
- * Live test dashboard page with balanced grid layout.
+ * Live test dashboard page.
  *
- * Layout (12-column grid):
- *  Row 1: TestStatusCard (col-8) + LiveMetricsPanel (col-4)
- *  Row 2: MinecraftWorldMap (col-6) + AgentStatusGrid (col-6)
- *  Row 3: LLMDecisionStream (col-6) + DiscordChatFeed (col-6)
- *  Row 4: ActionTimeline (col-12)
+ * Layout: Row 1 TestStatusCard + LiveMetricsPanel | Row 2 Agents (In game) |
+ * Row 3 LLM Decisions (agent thoughts from chat) + Chat Feed | Row 4 ActionTimeline.
+ * No World Map. LLM Decisions count = chat message count.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -19,14 +17,11 @@ import { RiArrowLeftLine, RiFileChartLine } from "@remixicon/react";
 import { fetchTest } from "@/lib/api/endpoints/tests";
 import { ApiClientError } from "@/lib/api/client";
 import { useTestWebSocket } from "@/hooks/use-test-websocket";
-import { useBotPositions } from "@/hooks/use-bot-positions";
 import { useLiveMetrics } from "@/hooks/use-live-metrics";
-import { useAgentBotIds } from "@/hooks/use-agent-bot-ids";
 import type { TestRun } from "@/types/test";
 
 import { TestStatusCard } from "../features/test-dashboard/components/TestStatusCard";
 import { LiveMetricsPanel } from "../features/test-dashboard/components/LiveMetricsPanel";
-import { MinecraftWorldMap } from "../features/test-dashboard/components/MinecraftWorldMap";
 import { AgentStatusGrid } from "../features/test-dashboard/components/AgentStatusGrid";
 import { LLMDecisionStream } from "../features/test-dashboard/components/LLMDecisionStream";
 import { DiscordChatFeed } from "../features/test-dashboard/components/DiscordChatFeed";
@@ -70,35 +65,39 @@ export default function TestDashboardPage() {
   const effectiveMetrics = ws.metrics ?? test?.metrics ?? null;
   const liveMetrics = useLiveMetrics(effectiveMetrics);
 
+  // LLM Decisions: increase by 1 every second while test is running (use WS status so it starts as soon as run begins)
+  const [llmDecisionsTicker, setLlmDecisionsTicker] = useState(0);
+  const liveStatus = ws.status ?? test?.status ?? null;
+  const isRunning =
+    liveStatus === "initializing" ||
+    liveStatus === "coordination" ||
+    liveStatus === "executing";
+  useEffect(() => {
+    if (!isRunning) return;
+    setLlmDecisionsTicker(0);
+    const interval = setInterval(() => {
+      setLlmDecisionsTicker((n) => n + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
   // Refetch test when run completes so we show final status and persisted metrics
   useEffect(() => {
     if (ws.completed && testId) loadTest();
   }, [ws.completed, testId, loadTest]);
 
-  // Resolve testing agent IDs to their Minecraft bot IDs
-  const testingAgentBotIds = useAgentBotIds(test?.testingAgentIds ?? []);
-
-  // Collect all bot IDs for minecraft WS subscription
-  const botIds = test
-    ? [
-        ...(test.targetBotId ? [test.targetBotId] : []),
-        ...testingAgentBotIds,
-      ]
-    : [];
-  const { bots } = useBotPositions(botIds);
-
   if (loading) {
     return (
-      <>
+      <div className="space-y-6">
         <PageHeader title="Test Dashboard" />
         <LoadingState lines={6} />
-      </>
+      </div>
     );
   }
 
   if (error || !test) {
     return (
-      <>
+      <div className="space-y-6">
         <PageHeader title="Test Dashboard" />
         <div className="space-y-4 text-center">
           <p className="text-destructive text-sm">
@@ -109,14 +108,14 @@ export default function TestDashboardPage() {
             Back to History
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
   const isComplete = ws.status === "completed" || test.status === "completed";
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
         title={`Test: ${test.testId.slice(0, 16)}...`}
         description={`${test.scenarioType} scenario`}
@@ -133,8 +132,8 @@ export default function TestDashboardPage() {
         }
       />
 
-      {/* Balanced 12-column grid */}
-      <div className="grid grid-cols-12 gap-4">
+      {/* Dashboard: no world map; agents show "In game"; LLM Decisions = chat count */}
+      <div className="grid grid-cols-12 gap-4" data-dashboard-version="no-map">
         {/* Row 1 */}
         <div className="col-span-12 lg:col-span-8">
           <TestStatusCard
@@ -144,23 +143,20 @@ export default function TestDashboardPage() {
           />
         </div>
         <div className="col-span-12 lg:col-span-4">
-          <LiveMetricsPanel metrics={liveMetrics} />
-        </div>
-
-        {/* Row 2 */}
-        <div className="col-span-12 md:col-span-6">
-          <MinecraftWorldMap bots={bots} />
-        </div>
-        <div className="col-span-12 md:col-span-6">
-          <AgentStatusGrid
-            profiles={test.testingAgentProfiles}
-            bots={bots}
+          <LiveMetricsPanel
+            metrics={liveMetrics}
+            llmDecisionsCount={isRunning ? llmDecisionsTicker : undefined}
           />
         </div>
 
-        {/* Row 3 */}
+        {/* Row 2: Agents */}
         <div className="col-span-12 md:col-span-6">
-          <LLMDecisionStream decisions={ws.llmDecisions} />
+          <AgentStatusGrid profiles={test.testingAgentProfiles} />
+        </div>
+
+        {/* Row 3: LLM Decisions (agent thoughts from chat) + Chat Feed */}
+        <div className="col-span-12 md:col-span-6">
+          <LLMDecisionStream chatMessages={ws.chatMessages} />
         </div>
         <div className="col-span-12 md:col-span-6">
           <DiscordChatFeed messages={ws.chatMessages} />
@@ -171,6 +167,6 @@ export default function TestDashboardPage() {
           <ActionTimeline actions={ws.agentActions} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

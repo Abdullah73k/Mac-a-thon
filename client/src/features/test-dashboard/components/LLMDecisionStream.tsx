@@ -1,5 +1,6 @@
 /**
- * Scrollable feed showing LLM decision events as they arrive.
+ * Shows "what the agent is thinking" — driven by chat feed.
+ * Each agent message appears as a thought; count increases with each message.
  */
 
 import { useRef, useEffect, memo } from "react";
@@ -13,23 +14,19 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatTime } from "@/lib/utils/format";
-import { cn } from "@/lib/utils";
-import type { TargetLlmDecision } from "@/hooks/use-test-websocket";
+import type { TestChatMessage } from "@/hooks/use-test-websocket";
 
 function LLMDecisionStreamInner({
-  decisions,
+  chatMessages,
 }: {
-  decisions: TargetLlmDecision[];
+  chatMessages: TestChatMessage[];
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new decisions
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) {
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [decisions.length]);
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [chatMessages.length]);
 
   return (
     <Card>
@@ -40,54 +37,31 @@ function LLMDecisionStreamInner({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {decisions.length === 0 ? (
+        {chatMessages.length === 0 ? (
           <EmptyState
             icon={RiBrainLine}
-            title="No decisions yet"
-            description="LLM reasoning will stream here during execution"
+            title="What the agent might be thinking"
+            description="Agent thoughts will appear here as they chat during the test"
           />
         ) : (
           <div
             ref={scrollRef}
             className="max-h-[260px] space-y-2 overflow-y-auto"
           >
-            {decisions.map((d, i) => (
+            {chatMessages.map((msg, i) => (
               <div
-                key={`${d.timestamp}-${i}`}
+                key={`${msg.timestamp}-${i}`}
                 className="ring-foreground/5 space-y-1 rounded-none p-2 ring-1"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                    {formatTime(d.timestamp)}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[10px] tabular-nums font-mono",
-                      d.responseTimeMs > 5000
-                        ? "text-destructive"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {d.responseTimeMs}ms
-                  </span>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span className="tabular-nums">{formatTime(msg.timestamp)}</span>
+                  <span>{msg.agentId}</span>
                 </div>
                 <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">
-                  {d.responseText.length > 300
-                    ? d.responseText.slice(0, 300) + "..."
-                    : d.responseText}
+                  {msg.message.length > 300
+                    ? msg.message.slice(0, 300) + "..."
+                    : msg.message}
                 </p>
-                {d.parsedActions.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {d.parsedActions.map((action, j) => (
-                      <span
-                        key={j}
-                        className="bg-primary/10 text-primary px-1.5 py-0.5 text-[10px]"
-                      >
-                        {action}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
             ))}
           </div>
