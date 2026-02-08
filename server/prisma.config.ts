@@ -1,16 +1,12 @@
 /**
- * Prisma configuration.
+ * Prisma 7 configuration.
  *
- * Load server/.env explicitly so DATABASE_URL and DIRECT_URL are used
- * regardless of where the Prisma CLI is run from (cwd may be repo root).
+ * Bun auto-loads server/.env — no dotenv import needed.
+ * Uses DIRECT_URL (port 5432) for CLI operations since the pooler
+ * (port 6543 / pgBouncer) does not support migrations or db push.
  */
-import { config } from "dotenv";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-import { defineConfig } from "prisma/config";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: join(__dirname, ".env") });
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -18,8 +14,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Use direct connection for CLI (migrate, db push). Supabase pooler does not support migrations.
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"]!,
-    directUrl: process.env["DIRECT_URL"],
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"] ?? "",
   },
 });
