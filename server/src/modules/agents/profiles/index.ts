@@ -7,20 +7,20 @@
 
 import type { BehavioralProfile } from "../model";
 import type { ProfileDefinition } from "./types";
-import { CooperativeProfile } from "./cooperative.profile";
+import { LeaderProfile } from "./leader.profile";
 import { NonCooperatorProfile } from "./non-cooperator.profile";
 import { ConfuserProfile } from "./confuser.profile";
 import { ResourceHoarderProfile } from "./resource-hoarder.profile";
 import { TaskAbandonerProfile } from "./task-abandoner.profile";
-import { OverCommunicatorProfile } from "./over-communicator.profile";
+import { FollowerProfile } from "./follower.profile";
 
 export const PROFILE_REGISTRY: Record<BehavioralProfile, ProfileDefinition> = {
-  cooperative: CooperativeProfile,
+  leader: LeaderProfile,
   "non-cooperator": NonCooperatorProfile,
   confuser: ConfuserProfile,
   "resource-hoarder": ResourceHoarderProfile,
   "task-abandoner": TaskAbandonerProfile,
-  "over-communicator": OverCommunicatorProfile,
+  follower: FollowerProfile,
 };
 
 /**

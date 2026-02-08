@@ -15,12 +15,12 @@
 import { z } from "zod";
 
 export const behavioralProfileSchema = z.enum([
-  "cooperative",
+  "leader",
   "non-cooperator",
   "confuser",
   "resource-hoarder",
   "task-abandoner",
-  "over-communicator",
+  "follower",
 ]);
 
 export const scenarioTypeSchema = z.enum([

@@ -4,12 +4,12 @@
 
 /** The 6 behavioral profiles available for testing agents. */
 export type BehavioralProfile =
-  | "cooperative"
+  | "leader"
   | "non-cooperator"
   | "confuser"
   | "resource-hoarder"
   | "task-abandoner"
-  | "over-communicator";
+  | "follower";
 
 /** Possible states of an agent. */
 export type AgentStatus =

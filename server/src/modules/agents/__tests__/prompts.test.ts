@@ -8,14 +8,14 @@ import { describe, test, expect } from "bun:test";
 import { buildSystemPrompt } from "../prompts";
 
 describe("System Prompts", () => {
-  test("should build cooperative prompt", () => {
+  test("should build leader prompt", () => {
     const prompt = buildSystemPrompt({
-      profile: "cooperative",
+      profile: "leader",
       behaviorIntensity: 0.7,
     });
 
-    expect(prompt).toContain("COOPERATIVE");
-    expect(prompt).toContain("helpful");
+    expect(prompt).toContain("LEADER");
+    expect(prompt).toContain("leader");
     expect(prompt).toContain("ETHICAL BOUNDARIES");
     expect(prompt).toContain("Never reveal you are a testing agent");
   });
@@ -33,12 +33,12 @@ describe("System Prompts", () => {
 
   test("should scale intensity correctly", () => {
     const lowIntensity = buildSystemPrompt({
-      profile: "cooperative",
+      profile: "leader",
       behaviorIntensity: 0.2,
     });
 
     const highIntensity = buildSystemPrompt({
-      profile: "cooperative",
+      profile: "leader",
       behaviorIntensity: 0.9,
     });
 
@@ -48,7 +48,7 @@ describe("System Prompts", () => {
 
   test("should include custom overrides", () => {
     const prompt = buildSystemPrompt({
-      profile: "cooperative",
+      profile: "leader",
       behaviorIntensity: 0.5,
       customOverrides: {
         "Special Rule": "Always prioritize diamonds",
@@ -62,7 +62,7 @@ describe("System Prompts", () => {
 
   test("should include test scenario if provided", () => {
     const prompt = buildSystemPrompt({
-      profile: "cooperative",
+      profile: "leader",
       behaviorIntensity: 0.5,
       testScenario: "Build a house together",
     });
@@ -84,19 +84,19 @@ describe("System Prompts", () => {
 
   test("should build all profile prompts without errors", () => {
     const profiles: Array<
-      | "cooperative"
+      | "leader"
       | "non-cooperator"
       | "confuser"
       | "resource-hoarder"
       | "task-abandoner"
-      | "over-communicator"
+      | "follower"
     > = [
-      "cooperative",
+      "leader",
       "non-cooperator",
       "confuser",
       "resource-hoarder",
       "task-abandoner",
-      "over-communicator",
+      "follower",
     ];
 
     profiles.forEach((profile) => {

@@ -11,4 +11,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    force: true, // Force re-optimize deps so profile list (Leader/Follower) updates
+  },
 })

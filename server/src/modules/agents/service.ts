@@ -48,6 +48,7 @@ export class AgentService {
         },
         behaviorIntensity: request.behaviorIntensity ?? 0.5,
         customPromptOverrides: request.customPromptOverrides,
+        ...(request.spawnTeleport && { spawnTeleport: request.spawnTeleport }),
       };
 
       // Validate configuration

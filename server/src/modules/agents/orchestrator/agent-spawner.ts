@@ -36,7 +36,8 @@ export class AgentSpawner {
           config.minecraftBot.username,
           config.minecraftBot.host,
           config.minecraftBot.port,
-          config.minecraftBot.version
+          config.minecraftBot.version,
+          config.spawnTeleport
         );
         botId = botState.botId;
       } catch (botError) {

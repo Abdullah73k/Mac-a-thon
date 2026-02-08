@@ -35,6 +35,15 @@ import { Vec3 } from "vec3";
 // Types
 // ---------------------------------------------------------------------------
 
+/** Spawn position/facing for teleport after join. */
+export interface SpawnTeleportOption {
+  x: number;
+  y: number;
+  z: number;
+  yaw?: number;
+  pitch?: number;
+}
+
 /** Configuration needed to create a target LLM agent. */
 export interface TargetLlmAgentConfig {
   testId: string;
@@ -44,6 +53,8 @@ export interface TargetLlmAgentConfig {
   objectivePrompt: string;
   /** Full test run configuration. */
   runConfig: TestRunConfig;
+  /** If set, bot is teleported here after spawn. */
+  spawnTeleport?: SpawnTeleportOption;
 }
 
 /** Represents the running state of a target LLM agent. */
@@ -106,7 +117,7 @@ function generateAgentId(): string {
 export async function startTargetLlmAgent(
   config: TargetLlmAgentConfig,
 ): Promise<ServiceResult<TargetLlmAgentHandle>> {
-  const { testId, model, objectivePrompt, runConfig } = config;
+  const { testId, model, objectivePrompt, runConfig, spawnTeleport } = config;
   const agentId = generateAgentId();
 
   // 1. Create Minecraft bot
@@ -118,6 +129,7 @@ export async function startTargetLlmAgent(
     runConfig.minecraftServer.host,
     runConfig.minecraftServer.port,
     runConfig.minecraftServer.version,
+    spawnTeleport,
   );
 
   if (!botResult.ok) {

@@ -60,7 +60,7 @@ export abstract class BehavioralAnalyzer {
     const cooperationMetric = metrics.find((m) => m.metricType === "cooperation");
 
     if (cooperationMetric) {
-      if (profile === "cooperative" && cooperationMetric.value < 0.7) {
+      if (profile === "leader" && cooperationMetric.value < 0.7) {
         deviations.push(
           `Expected high cooperation (>0.7) but observed ${cooperationMetric.value.toFixed(2)}`
         );

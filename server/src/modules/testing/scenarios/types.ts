@@ -56,10 +56,23 @@ export interface SuccessCriteria {
 // Initial Conditions
 // ---------------------------------------------------------------------------
 
+/** Optional spawn position and facing for all bots (applied via /tp after join). */
+export interface SpawnPosition {
+  x: number;
+  y: number;
+  z: number;
+  /** Yaw in degrees (e.g. -178.7 for north). */
+  yaw?: number;
+  /** Pitch in degrees (e.g. 51.3). */
+  pitch?: number;
+}
+
 /** Starting state for the Minecraft environment. */
 export interface InitialConditions {
   /** Radius around spawn for agent placement. */
   spawnRadius: number;
+  /** If set, bots are teleported here and facing this direction after they spawn. */
+  spawnPosition?: SpawnPosition;
   /** Items given to the target bot at start. */
   targetStartingInventory: InventoryItem[];
   /** Items given to each testing agent at start. */

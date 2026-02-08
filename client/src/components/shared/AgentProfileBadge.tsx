@@ -19,12 +19,12 @@ import { PROFILE_INFO } from "@/lib/utils/colors";
 import type { BehavioralProfile } from "@/types/agent";
 
 const PROFILE_ICONS: Record<BehavioralProfile, React.ElementType> = {
-  cooperative: RiUserLine,
+  leader: RiUserLine,
   "non-cooperator": RiUserUnfollowLine,
   confuser: RiQuestionLine,
   "resource-hoarder": RiBox3Line,
   "task-abandoner": RiLogoutBoxLine,
-  "over-communicator": RiChatVoiceLine,
+  follower: RiChatVoiceLine,
 };
 
 function AgentProfileBadge({

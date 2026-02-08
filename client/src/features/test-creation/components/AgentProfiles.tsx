@@ -14,19 +14,37 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
-import { PROFILE_INFO } from "@/lib/utils/colors";
 import { AgentProfileBadge } from "@/components/shared/AgentProfileBadge";
 import type { BehavioralProfile } from "@/types/agent";
 import type { CreateTestFormData } from "@/lib/schemas/test.schemas";
 
+// Inline list for dashboard step so UI always shows Leader / Follower (not Cooperative / Over-Communicator)
 const ALL_PROFILES: BehavioralProfile[] = [
-  "cooperative",
+  "leader",
   "non-cooperator",
   "confuser",
   "resource-hoarder",
   "task-abandoner",
-  "over-communicator",
+  "follower",
 ];
+
+const PROFILE_LABELS: Record<BehavioralProfile, string> = {
+  leader: "Leader",
+  "non-cooperator": "Non-Cooperator",
+  confuser: "Confuser",
+  "resource-hoarder": "Resource Hoarder",
+  "task-abandoner": "Task Abandoner",
+  follower: "Follower",
+};
+
+const PROFILE_DESCRIPTIONS: Record<BehavioralProfile, string> = {
+  leader: "Speaks first, assigns the task, builds, and reasons with the non-cooperator",
+  "non-cooperator": "Self-interested, refuses help and resources",
+  confuser: "Provides contradictory information, changes plans",
+  "resource-hoarder": "Monopolizes materials and blocks access",
+  "task-abandoner": "Starts tasks but leaves mid-execution",
+  follower: "Follows the leader's tasks and tries to mitigate between the non-cooperator and leader",
+};
 
 function AgentProfiles() {
   const {
@@ -36,7 +54,7 @@ function AgentProfiles() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
+      <div className="space-y-1" data-profile-set="leader-follower">
         <h3 className="text-sm font-medium">Testing Agent Profiles</h3>
         <p className="text-xs text-muted-foreground">
           Select the behavioral archetypes that will interact with the target LLM.
@@ -66,7 +84,8 @@ function AgentProfiles() {
               <FieldLabel>Profiles</FieldLabel>
               <div className="grid gap-2 sm:grid-cols-2">
                 {ALL_PROFILES.map((profile) => {
-                  const info = PROFILE_INFO[profile];
+                  const label = PROFILE_LABELS[profile];
+                  const description = PROFILE_DESCRIPTIONS[profile];
                   const isSelected = selected.includes(profile);
 
                   return (
@@ -82,7 +101,7 @@ function AgentProfiles() {
                       <div className="flex-1 space-y-1">
                         <AgentProfileBadge profile={profile} />
                         <p className="text-muted-foreground text-[11px] leading-relaxed">
-                          {info?.description}
+                          {description}
                         </p>
                       </div>
                     </button>

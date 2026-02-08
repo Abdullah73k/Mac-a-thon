@@ -153,6 +153,19 @@ export class BotInstance extends EventEmitter {
         this.emit("spawn", this.botId);
         this.registerEventListeners();
         console.log(`[BotInstance] "${this.config.username}" spawned successfully`);
+
+        // Teleport to desired spawn position/facing if configured (requires server to allow /tp)
+        const tp = this.config.spawnTeleport;
+        if (tp && this.bot) {
+          const { x, y, z, yaw = 0, pitch = 0 } = tp;
+          setTimeout(() => {
+            if (this.bot) {
+              this.bot.chat(`/tp @s ${x} ${y} ${z} ${yaw} ${pitch}`);
+              console.log(`[BotInstance] "${this.config.username}" teleported to (${x}, ${y}, ${z}) facing yaw=${yaw} pitch=${pitch}`);
+            }
+          }, 600);
+        }
+
         succeed();
       });
 

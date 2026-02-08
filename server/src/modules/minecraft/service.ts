@@ -33,18 +33,22 @@ type ServiceResult<T> = ServiceSuccess<T> | ServiceError;
 // Service
 // ---------------------------------------------------------------------------
 
+import type { SpawnTeleport } from "./types";
+
 export abstract class MinecraftService {
   /**
    * Create a new bot and connect it to the Minecraft server.
+   * @param spawnTeleport - If set, bot is teleported to this position/facing after spawn.
    */
   static async createBot(
     username: string,
     host?: string,
     port?: number,
     version?: string,
+    spawnTeleport?: SpawnTeleport,
   ): Promise<ServiceResult<BotState>> {
     try {
-      const state = await botManager.createBot(username, host, port, version);
+      const state = await botManager.createBot(username, host, port, version, spawnTeleport);
       return { ok: true, data: state };
     } catch (err) {
       if (err instanceof BotManagerError) {

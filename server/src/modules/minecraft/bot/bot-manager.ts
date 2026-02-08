@@ -18,7 +18,7 @@ import {
   MINECRAFT_VERSION,
   MAX_CONCURRENT_BOTS,
 } from "../../../../constants/minecraft.constants";
-import type { BotConfig, BotState, BotStatus } from "../types";
+import type { BotConfig, BotState, BotStatus, SpawnTeleport } from "../types";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -66,6 +66,7 @@ export class BotManager extends EventEmitter {
    * @param host - Server host (defaults to env MINECRAFT_HOST)
    * @param port - Server port (defaults to env MINECRAFT_PORT)
    * @param version - MC version (defaults to env MINECRAFT_VERSION)
+   * @param spawnTeleport - If set, bot is teleported here after spawn (requires server /tp)
    * @returns The newly created bot's state snapshot
    */
   async createBot(
@@ -73,6 +74,7 @@ export class BotManager extends EventEmitter {
     host?: string,
     port?: number,
     version?: string,
+    spawnTeleport?: SpawnTeleport,
   ): Promise<BotState> {
     // Enforce concurrency limit
     if (this.bots.size >= MAX_CONCURRENT_BOTS) {
@@ -104,6 +106,7 @@ export class BotManager extends EventEmitter {
       port: port ?? MINECRAFT_PORT,
       version: (version && version.length > 0) ? version : (MINECRAFT_VERSION || undefined),
       auth: "offline",
+      ...(spawnTeleport && { spawnTeleport }),
     };
 
     const instance = new BotInstance(config);

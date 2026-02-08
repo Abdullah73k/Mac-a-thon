@@ -14,12 +14,12 @@ import {
   MINECRAFT_CONTEXT,
   REMEMBER_NOTE,
 } from "./base.prompt";
-import { cooperativeTemplate } from "./templates/cooperative.template";
+import { leaderTemplate } from "./templates/leader.template";
 import { nonCooperatorTemplate } from "./templates/non-cooperator.template";
 import { confuserTemplate } from "./templates/confuser.template";
 import { resourceHoarderTemplate } from "./templates/resource-hoarder.template";
 import { taskAbandonerTemplate } from "./templates/task-abandoner.template";
-import { overCommunicatorTemplate } from "./templates/over-communicator.template";
+import { followerTemplate } from "./templates/follower.template";
 
 export interface PromptContext {
   profile: BehavioralProfile;
@@ -40,12 +40,12 @@ type TemplateFunction = (
  * Template registry mapping profiles to their template functions
  */
 const TEMPLATE_REGISTRY: Record<BehavioralProfile, TemplateFunction> = {
-  cooperative: cooperativeTemplate,
+  leader: leaderTemplate,
   "non-cooperator": nonCooperatorTemplate,
   confuser: confuserTemplate,
   "resource-hoarder": resourceHoarderTemplate,
   "task-abandoner": taskAbandonerTemplate,
-  "over-communicator": overCommunicatorTemplate,
+  follower: followerTemplate,
 };
 
 /**

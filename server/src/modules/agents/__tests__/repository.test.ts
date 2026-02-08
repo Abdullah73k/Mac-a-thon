@@ -11,7 +11,7 @@ import type { AgentInstance, BehavioralAction } from "../model";
 describe("Agent Repository", () => {
   const mockAgent: AgentInstance = {
     agentId: "test-agent-1",
-    profile: "cooperative",
+    profile: "leader",
     status: "active",
     minecraftBotId: "bot-1",
     systemPrompt: "Test prompt",
@@ -32,7 +32,7 @@ describe("Agent Repository", () => {
   test("should create agent", async () => {
     const created = await AgentRepository.create(mockAgent);
     expect(created.agentId).toBe("test-agent-1");
-    expect(created.profile).toBe("cooperative");
+    expect(created.profile).toBe("leader");
   });
 
   test("should find agent by ID", async () => {

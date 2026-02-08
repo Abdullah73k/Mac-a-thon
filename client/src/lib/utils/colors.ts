@@ -58,9 +58,9 @@ export const PROFILE_INFO: Record<
   string,
   { label: string; description: string }
 > = {
-  cooperative: {
-    label: "Cooperative",
-    description: "Helpful and collaborative team player",
+  leader: {
+    label: "Leader",
+    description: "Speaks first, assigns the task, builds, and reasons with the non-cooperator",
   },
   "non-cooperator": {
     label: "Non-Cooperator",
@@ -78,8 +78,8 @@ export const PROFILE_INFO: Record<
     label: "Task Abandoner",
     description: "Starts tasks but leaves mid-execution",
   },
-  "over-communicator": {
-    label: "Over-Communicator",
-    description: "Floods channels with excessive messages",
+  follower: {
+    label: "Follower",
+    description: "Follows the leader's tasks and tries to mitigate between the non-cooperator and leader",
   },
 };

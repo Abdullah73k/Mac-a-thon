@@ -15,12 +15,12 @@ import { t } from "elysia";
 // ---------------------------------------------------------------------------
 
 export const BehavioralProfileSchema = t.Union([
-  t.Literal("cooperative"),
+  t.Literal("leader"),
   t.Literal("non-cooperator"),
   t.Literal("confuser"),
   t.Literal("resource-hoarder"),
   t.Literal("task-abandoner"),
-  t.Literal("over-communicator"),
+  t.Literal("follower"),
 ]);
 export type BehavioralProfile = typeof BehavioralProfileSchema.static;
 
@@ -42,6 +42,14 @@ export type AgentStatus = typeof AgentStatusSchema.static;
 // Agent Configuration
 // ---------------------------------------------------------------------------
 
+const SpawnTeleportSchema = t.Object({
+  x: t.Number(),
+  y: t.Number(),
+  z: t.Number(),
+  yaw: t.Optional(t.Number()),
+  pitch: t.Optional(t.Number()),
+});
+
 export const AgentConfigSchema = t.Object({
   profile: BehavioralProfileSchema,
   minecraftBot: t.Object({
@@ -59,6 +67,7 @@ export const AgentConfigSchema = t.Object({
   ),
   customPromptOverrides: t.Optional(t.Record(t.String(), t.String())),
   behaviorIntensity: t.Number({ minimum: 0, maximum: 1 }),
+  spawnTeleport: t.Optional(SpawnTeleportSchema),
 });
 export type AgentConfig = typeof AgentConfigSchema.static;
 
@@ -111,6 +120,7 @@ export const CreateAgentRequestSchema = t.Object({
   }),
   behaviorIntensity: t.Optional(t.Number({ minimum: 0, maximum: 1 })),
   customPromptOverrides: t.Optional(t.Record(t.String(), t.String())),
+  spawnTeleport: t.Optional(SpawnTeleportSchema),
 });
 export type CreateAgentRequest = typeof CreateAgentRequestSchema.static;
 

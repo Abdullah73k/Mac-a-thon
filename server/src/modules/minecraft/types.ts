@@ -35,6 +35,15 @@ export type BotStatus =
   | "disconnected"
   | "error";
 
+/** Optional spawn position/facing applied after bot joins (via /tp). */
+export interface SpawnTeleport {
+  x: number;
+  y: number;
+  z: number;
+  yaw?: number;
+  pitch?: number;
+}
+
 /** Configuration required to create a new bot. */
 export interface BotConfig {
   /** Unique identifier for this bot instance. */
@@ -49,6 +58,8 @@ export interface BotConfig {
   version?: string;
   /** Authentication mode — always offline for testing. */
   auth: "offline";
+  /** If set, bot is teleported here (and facing) after spawn. Requires server to allow /tp. */
+  spawnTeleport?: SpawnTeleport;
 }
 
 /** Runtime snapshot of a single bot's state. */

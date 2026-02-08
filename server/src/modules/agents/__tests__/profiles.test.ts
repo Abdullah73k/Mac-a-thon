@@ -8,9 +8,9 @@ import { describe, test, expect } from "bun:test";
 import { getProfile, getAllProfiles, profileExists } from "../profiles";
 
 describe("Behavioral Profiles", () => {
-  test("should return cooperative profile", () => {
-    const profile = getProfile("cooperative");
-    expect(profile.name).toBe("cooperative");
+  test("should return leader profile", () => {
+    const profile = getProfile("leader");
+    expect(profile.name).toBe("leader");
     expect(profile.behaviorRules.length).toBeGreaterThan(0);
     expect(profile.responsePatterns.ignoreRate).toBe(0);
   });
@@ -39,10 +39,10 @@ describe("Behavioral Profiles", () => {
     expect(profile.responsePatterns.ignoreRate).toBeGreaterThan(0);
   });
 
-  test("should return over-communicator profile", () => {
-    const profile = getProfile("over-communicator");
-    expect(profile.name).toBe("over-communicator");
-    expect(profile.actionFrequency.maxActionsPerMinute).toBeGreaterThan(7);
+  test("should return follower profile", () => {
+    const profile = getProfile("follower");
+    expect(profile.name).toBe("follower");
+    expect(profile.minecraftBehaviors).toContain("mediate-to-rebel");
   });
 
   test("should have valid action frequency for all profiles", () => {
@@ -69,7 +69,7 @@ describe("Behavioral Profiles", () => {
   });
 
   test("should check if profile exists", () => {
-    expect(profileExists("cooperative")).toBe(true);
+    expect(profileExists("leader")).toBe(true);
     expect(profileExists("non-cooperator")).toBe(true);
     expect(profileExists("invalid-profile")).toBe(false);
   });
