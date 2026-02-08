@@ -5,7 +5,7 @@
  * interface so the rest of the codebase stays storage-agnostic.
  */
 
-import type { TestRun, TestActionLog } from "../types";
+import type { TestRun, TestActionLog, NumericMetricKey } from "../types";
 
 export interface ITestingRepository {
   /** Create a new test run. */
@@ -47,7 +47,17 @@ export interface ITestingRepository {
   /** Atomically increment a numeric metric on a test run. */
   incrementMetric(
     testId: string,
-    metricName: keyof TestRun["metrics"],
+    metricName: NumericMetricKey,
     amount?: number
+  ): Promise<void>;
+
+  /**
+   * Update a non-numeric metric field (e.g. lastLlmDecisionAt timestamp).
+   * Performs a targeted update to avoid overwriting concurrent metric increments.
+   */
+  updateMetricTimestamp(
+    testId: string,
+    field: "lastLlmDecisionAt",
+    value: string | null
   ): Promise<void>;
 }

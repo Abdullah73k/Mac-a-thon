@@ -19,6 +19,7 @@ import type {
   CompletionReason,
   TestMetrics,
   TestRunConfig,
+  NumericMetricKey,
 } from "../types";
 import type { BehavioralProfile } from "../../agents/model";
 import type { ITestingRepository } from "./interface";
@@ -481,33 +482,57 @@ export class PrismaTestingRepository implements ITestingRepository {
   /** Atomically increment a numeric metric on a test run. */
   async incrementMetric(
     testId: string,
-    metricName: keyof TestRun["metrics"],
+    metricName: NumericMetricKey,
     amount: number = 1
   ): Promise<void> {
-    // Read current config blob
-    const existing = await prisma.testRun.findUnique({
-      where: { id: testId },
-      select: { config: true },
+    // Use a Prisma transaction to ensure atomicity
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.testRun.findUnique({
+        where: { id: testId },
+        select: { config: true },
+      });
+
+      if (!existing) {
+        throw new Error(`Test run ${testId} not found`);
+      }
+
+      const blob = existing.config as unknown as ConfigBlob;
+      blob.metrics[metricName] = blob.metrics[metricName] + amount;
+
+      await tx.testRun.update({
+        where: { id: testId },
+        data: {
+          config: blob as unknown as InputJsonValue,
+        },
+      });
     });
+  }
 
-    if (!existing) {
-      throw new Error(`Test run ${testId} not found`);
-    }
+  /** Update a non-numeric metric field (e.g. lastLlmDecisionAt). */
+  async updateMetricTimestamp(
+    testId: string,
+    field: "lastLlmDecisionAt",
+    value: string | null
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.testRun.findUnique({
+        where: { id: testId },
+        select: { config: true },
+      });
 
-    const blob = existing.config as ConfigBlob;
-    const currentValue = blob.metrics[metricName];
+      if (!existing) {
+        throw new Error(`Test run ${testId} not found`);
+      }
 
-    // Increment the metric
-    if (typeof currentValue === "number") {
-      blob.metrics[metricName] = currentValue + amount;
-    }
+      const blob = existing.config as unknown as ConfigBlob;
+      blob.metrics[field] = value;
 
-    // Write back the updated config blob
-    await prisma.testRun.update({
-      where: { id: testId },
-      data: {
-        config: blob as unknown as InputJsonValue,
-      },
+      await tx.testRun.update({
+        where: { id: testId },
+        data: {
+          config: blob as unknown as InputJsonValue,
+        },
+      });
     });
   }
 }

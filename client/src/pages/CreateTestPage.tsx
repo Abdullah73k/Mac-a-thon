@@ -23,7 +23,7 @@ import {
   type CreateTestFormData,
 } from "@/lib/schemas/test.schemas";
 import { DEFAULT_MC_CONFIG, DEFAULT_TEST_CONFIG } from "@/lib/utils/constants";
-import { createTest } from "@/lib/api/endpoints/tests";
+import { createTest, startTest } from "@/lib/api/endpoints/tests";
 
 import { useWizard, type WizardStep } from "../features/test-creation/hooks/use-wizard";
 import { StepIndicator } from "../features/test-creation/components/StepIndicator";
@@ -88,7 +88,16 @@ export default function CreateTestPage() {
     setSubmitting(true);
     try {
       const testRun = await createTest(data);
-      toast.success("Test created successfully");
+      toast.success("Test created — starting execution...");
+
+      try {
+        await startTest(testRun.testId);
+      } catch (startErr) {
+        const startMessage =
+          startErr instanceof Error ? startErr.message : "Failed to start test";
+        toast.error(`Test created but failed to start: ${startMessage}`);
+      }
+
       navigate(`/tests/${testRun.testId}`);
     } catch (err) {
       const message =
@@ -149,7 +158,7 @@ export default function CreateTestPage() {
 
             {wizard.isLast ? (
               <Button type="submit" disabled={submitting}>
-                {submitting ? "Creating..." : "Create Test"}
+                {submitting ? "Creating & Starting..." : "Create & Start Test"}
                 <RiPlayLine data-icon="inline-end" className="size-4" />
               </Button>
             ) : (

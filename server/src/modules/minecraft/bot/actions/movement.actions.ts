@@ -71,7 +71,8 @@ export const moveToHandler: ActionHandler<MoveToAction> = {
         mfBot.loadPlugin(pathfinder);
       }
 
-      const mcData = require("minecraft-data")(mfBot.version);
+      const mcDataMod = await import("minecraft-data");
+      const mcData = mcDataMod.default(mfBot.version);
       const movements = new Movements(mfBot);
       mfBot.pathfinder.setMovements(movements);
 

@@ -130,6 +130,14 @@ export interface TestMetrics {
   lastLlmDecisionAt: string | null;
 }
 
+/**
+ * Keys of TestMetrics that hold numeric values (safe for incrementing).
+ * Excludes non-numeric fields like `lastLlmDecisionAt`.
+ */
+export type NumericMetricKey = {
+  [K in keyof TestMetrics]: TestMetrics[K] extends number ? K : never;
+}[keyof TestMetrics];
+
 // ---------------------------------------------------------------------------
 // Test Action Log
 // ---------------------------------------------------------------------------

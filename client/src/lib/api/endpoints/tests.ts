@@ -3,7 +3,8 @@
  */
 
 import { apiClient } from "../client";
-import type { TestRun, TestActionLog, CreateTestRequest, ScenarioInfo } from "@/types/test";
+import type { TestRun, TestActionLog, ScenarioInfo } from "@/types/test";
+import type { CreateTestFormData } from "@/lib/schemas/test.schemas";
 
 /** Fetch all available scenarios. */
 export async function fetchScenarios(): Promise<{
@@ -13,8 +14,8 @@ export async function fetchScenarios(): Promise<{
   return apiClient.get("/api/tests/scenarios");
 }
 
-/** Create a new test run. */
-export async function createTest(data: CreateTestRequest): Promise<TestRun> {
+/** Create a new test run. Accepts the validated form data from the wizard. */
+export async function createTest(data: CreateTestFormData): Promise<TestRun> {
   return apiClient.post("/api/tests", data);
 }
 

@@ -5,12 +5,16 @@
  * and maintains a Map of botId -> BotState.
  */
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { useWebSocket } from "./use-websocket";
 import type { BotState, WsServerMessage } from "@/types/bot";
 
 export function useBotPositions(botIds: string[]) {
   const [bots, setBots] = useState<Map<string, BotState>>(new Map());
+
+  // Stabilize the bot IDs key to avoid unnecessary effect re-runs
+  const botIdsKey = useMemo(() => botIds.slice().sort().join(","), [botIds]);
+  const hasBots = botIds.length > 0;
 
   const handleMessage = useCallback((raw: unknown) => {
     const msg = raw as WsServerMessage;
@@ -27,21 +31,21 @@ export function useBotPositions(botIds: string[]) {
 
   const { status, send } = useWebSocket({
     path: "/ws/minecraft",
-    enabled: botIds.length > 0,
+    enabled: hasBots,
     onMessage: handleMessage,
   });
 
   // Subscribe to bot IDs when connected
   useEffect(() => {
-    if (status === "connected" && botIds.length > 0) {
+    if (status === "connected" && hasBots) {
       send({ type: "subscribe", botIds });
     }
-  }, [status, botIds, send]);
+  }, [status, botIdsKey, hasBots, send]);
 
   // Clear state when bot IDs change
   useEffect(() => {
     setBots(new Map());
-  }, [botIds.join(",")]);
+  }, [botIdsKey]);
 
   return { status, bots };
 }

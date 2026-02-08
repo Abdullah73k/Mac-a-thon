@@ -28,7 +28,7 @@ export const BaseMetricSchema = z.object({
   value: z.number(),
   unit: z.string(), // e.g., "score", "seconds", "percentage"
   timestamp: z.date(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export type BaseMetric = z.infer<typeof BaseMetricSchema>;
@@ -176,7 +176,7 @@ export const EvaluationReportSchema = z.object({
     totalAgents: z.number(),
     totalErrors: z.number().optional(),
   }),
-  metrics: z.record(MetricSummarySchema).optional(),
+  metrics: z.record(z.string(), MetricSummarySchema).optional(),
   behavioralAnalysis: z.array(BehavioralAnalysisSchema).optional(),
   insights: z.array(z.string()),
   recommendations: z.array(z.string()).optional(),
@@ -212,7 +212,7 @@ export type GetMetricsRequest = z.infer<typeof GetMetricsRequestSchema>;
 
 export const GetMetricsResponseSchema = z.object({
   metrics: z.array(BaseMetricSchema),
-  summary: z.record(MetricSummarySchema),
+  summary: z.record(z.string(), MetricSummarySchema),
 });
 
 export type GetMetricsResponse = z.infer<typeof GetMetricsResponseSchema>;

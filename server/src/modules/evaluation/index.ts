@@ -41,7 +41,10 @@ export const evaluationController = new Elysia({ prefix: "/api/evaluation" })
   .post(
     "/reports",
     async ({ body, set }) => {
-      const result = await EvaluationService.generateReport(body);
+      const result = await EvaluationService.generateReport({
+        testRunId: body.testRunId,
+        includeRawData: body.includeRawData ?? false,
+      });
 
       if (!result.ok) {
         set.status = result.code === "NOT_FOUND" ? 404 : 400;

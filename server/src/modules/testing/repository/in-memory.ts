@@ -5,7 +5,7 @@
  * Implements ITestingRepository so it can be swapped with Prisma.
  */
 
-import type { TestRun, TestActionLog } from "../types";
+import type { TestRun, TestActionLog, NumericMetricKey } from "../types";
 import type { ITestingRepository } from "./interface";
 
 // ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ export class InMemoryTestingRepository implements ITestingRepository {
   /** Atomically increment a numeric metric on a test run. */
   async incrementMetric(
     testId: string,
-    metricName: keyof TestRun["metrics"],
+    metricName: NumericMetricKey,
     amount: number = 1
   ): Promise<void> {
     const testRun = testRunsStore.get(testId);
@@ -134,9 +134,20 @@ export class InMemoryTestingRepository implements ITestingRepository {
     }
 
     // Direct modification is atomic in single-threaded JS
-    const currentValue = testRun.metrics[metricName];
-    if (typeof currentValue === "number") {
-      testRun.metrics[metricName] = currentValue + amount;
+    testRun.metrics[metricName] = testRun.metrics[metricName] + amount;
+  }
+
+  /** Update a non-numeric metric field (e.g. lastLlmDecisionAt). */
+  async updateMetricTimestamp(
+    testId: string,
+    field: "lastLlmDecisionAt",
+    value: string | null
+  ): Promise<void> {
+    const testRun = testRunsStore.get(testId);
+    if (!testRun) {
+      throw new Error(`Test run ${testId} not found`);
     }
+
+    testRun.metrics[field] = value;
   }
 }
