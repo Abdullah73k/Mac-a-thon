@@ -88,7 +88,11 @@ export interface TestActionLog {
   metadata: Record<string, unknown>;
 }
 
-/** Domain-level request to create a new test run. */
+/**
+ * Domain-level request to create a new test run.
+ * This is the loose type matching the backend's optional fields.
+ * For validated form data, use CreateTestFormData from schemas.
+ */
 export interface CreateTestRequest {
   scenarioType: ScenarioType;
   targetLlmModel: string;
