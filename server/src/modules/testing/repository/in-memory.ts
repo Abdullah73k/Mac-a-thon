@@ -136,4 +136,18 @@ export class InMemoryTestingRepository implements ITestingRepository {
     // Direct modification is atomic in single-threaded JS
     testRun.metrics[metricName] = testRun.metrics[metricName] + amount;
   }
+
+  /** Update a non-numeric metric field (e.g. lastLlmDecisionAt). */
+  async updateMetricTimestamp(
+    testId: string,
+    field: "lastLlmDecisionAt",
+    value: string | null
+  ): Promise<void> {
+    const testRun = testRunsStore.get(testId);
+    if (!testRun) {
+      throw new Error(`Test run ${testId} not found`);
+    }
+
+    testRun.metrics[field] = value;
+  }
 }

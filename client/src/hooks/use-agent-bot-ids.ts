@@ -5,7 +5,7 @@
  * for each agent. Results are cached for the lifetime of the component.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { fetchAgentsByIds } from "@/lib/api/endpoints/agents";
 
 /**
@@ -19,22 +19,26 @@ export function useAgentBotIds(agentIds: string[]): string[] {
   const [botIds, setBotIds] = useState<string[]>([]);
   const fetchedRef = useRef<string>("");
 
+  // Stable key derived from sorted agent IDs to avoid re-fetching
+  const agentIdsKey = useMemo(
+    () => agentIds.slice().sort().join(","),
+    [agentIds]
+  );
+
   useEffect(() => {
     if (agentIds.length === 0) {
       setBotIds([]);
       return;
     }
 
-    // Stable key to avoid re-fetching for the same set of agent IDs
-    const key = agentIds.slice().sort().join(",");
-    if (key === fetchedRef.current) return;
+    if (agentIdsKey === fetchedRef.current) return;
 
     let cancelled = false;
 
     fetchAgentsByIds(agentIds)
       .then((agentMap) => {
         if (cancelled) return;
-        fetchedRef.current = key;
+        fetchedRef.current = agentIdsKey;
 
         const resolved: string[] = [];
         for (const agentId of agentIds) {
@@ -53,7 +57,7 @@ export function useAgentBotIds(agentIds: string[]): string[] {
     return () => {
       cancelled = true;
     };
-  }, [agentIds]);
+  }, [agentIdsKey]);
 
   return botIds;
 }

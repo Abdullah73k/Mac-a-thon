@@ -12,6 +12,7 @@ import { getProfile } from "../profiles";
 import { botManager } from "../../minecraft/bot/bot-manager";
 import type { BotInstance } from "../../minecraft/bot/bot-instance";
 import type { Bot as MineflayerBot } from "mineflayer";
+import { Vec3 } from "vec3";
 import { AgentRepository } from "../repository";
 
 // ---------------------------------------------------------------------------
@@ -199,9 +200,6 @@ export class BehaviorExecutor {
             const dist = Math.sqrt(dx * dx + dz * dz) || 1;
 
             // Move in the opposite direction
-            const awayX = mcBot.entity.position.x + (dx / dist) * 8;
-            const awayZ = mcBot.entity.position.z + (dz / dist) * 8;
-
             await mcBot.lookAt(
               mcBot.entity.position.offset(dx / dist, 0, dz / dist),
               true,
@@ -333,7 +331,7 @@ export class BehaviorExecutor {
             );
             if (below && below.name !== "air") {
               try {
-                await mcBot.placeBlock(below, { x: 0, y: 1, z: 0 } as any);
+                await mcBot.placeBlock(below, new Vec3(0, 1, 0));
                 console.log(`[${agent.agentId}] Placed a block then abandoned it`);
               } catch {
                 // placement failed, that's fine

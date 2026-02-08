@@ -519,7 +519,7 @@ async function executeActions(
             if (pathfinder) {
               try {
                 // Create a goal to reach the target position (within 1 block)
-                const { goals } = require('mineflayer-pathfinder');
+                const { goals } = await import('mineflayer-pathfinder');
                 const goal = new goals.GoalNear(x, y, z, 1);
                 
                 // Start pathfinding (with timeout to avoid infinite waiting)
@@ -793,7 +793,7 @@ async function incrementMetric(
 
 /**
  * Update metrics after a successful LLM decision cycle.
- * Uses atomic increments and then updates timestamp separately.
+ * Uses atomic increments and targeted timestamp update to avoid race conditions.
  */
 async function updateMetricsAfterDecision(
   testId: string,
@@ -804,20 +804,19 @@ async function updateMetricsAfterDecision(
     await testingRepository.incrementMetric(testId, "llmDecisionCount", 1);
     await testingRepository.incrementMetric(testId, "totalLlmResponseTimeMs", responseTimeMs);
 
-    // Update timestamp separately (not a race condition concern)
+    // Update timestamp with targeted write (no read-modify-write race)
+    const now = new Date().toISOString();
+    await testingRepository.updateMetricTimestamp(testId, "lastLlmDecisionAt", now);
+
+    // Read back the latest metrics for the event
     const testRun = await testingRepository.findById(testId);
-    if (!testRun) return;
-
-    const updatedMetrics = { ...testRun.metrics };
-    updatedMetrics.lastLlmDecisionAt = new Date().toISOString();
-
-    await testingRepository.update(testId, { metrics: updatedMetrics });
-
-    testEvents.emitEvent("test-metrics-updated", {
-      testId,
-      metrics: updatedMetrics,
-      timestamp: new Date().toISOString(),
-    });
+    if (testRun) {
+      testEvents.emitEvent("test-metrics-updated", {
+        testId,
+        metrics: testRun.metrics,
+        timestamp: now,
+      });
+    }
   } catch {
     // Non-critical
   }

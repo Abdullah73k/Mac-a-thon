@@ -507,4 +507,32 @@ export class PrismaTestingRepository implements ITestingRepository {
       });
     });
   }
+
+  /** Update a non-numeric metric field (e.g. lastLlmDecisionAt). */
+  async updateMetricTimestamp(
+    testId: string,
+    field: "lastLlmDecisionAt",
+    value: string | null
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.testRun.findUnique({
+        where: { id: testId },
+        select: { config: true },
+      });
+
+      if (!existing) {
+        throw new Error(`Test run ${testId} not found`);
+      }
+
+      const blob = existing.config as unknown as ConfigBlob;
+      blob.metrics[field] = value;
+
+      await tx.testRun.update({
+        where: { id: testId },
+        data: {
+          config: blob as unknown as InputJsonValue,
+        },
+      });
+    });
+  }
 }

@@ -50,4 +50,14 @@ export interface ITestingRepository {
     metricName: NumericMetricKey,
     amount?: number
   ): Promise<void>;
+
+  /**
+   * Update a non-numeric metric field (e.g. lastLlmDecisionAt timestamp).
+   * Performs a targeted update to avoid overwriting concurrent metric increments.
+   */
+  updateMetricTimestamp(
+    testId: string,
+    field: "lastLlmDecisionAt",
+    value: string | null
+  ): Promise<void>;
 }
