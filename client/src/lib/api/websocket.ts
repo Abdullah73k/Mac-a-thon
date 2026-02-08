@@ -7,7 +7,13 @@
 
 type MessageHandler = (message: unknown) => void;
 
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:3000";
+/** In dev with Vite proxy, use same host so /ws is proxied to backend. */
+function getWsBaseUrl(): string {
+  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
+  if (import.meta.env.DEV && typeof location !== "undefined")
+    return `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}`;
+  return "ws://localhost:3000";
+}
 const MAX_RECONNECT_ATTEMPTS = 8;
 const INITIAL_RECONNECT_DELAY_MS = 1000;
 
@@ -21,7 +27,7 @@ export class WebSocketManager {
   private shouldReconnect = true;
 
   constructor(path: string) {
-    this.url = `${WS_BASE_URL}${path}`;
+    this.url = `${getWsBaseUrl()}${path}`;
   }
 
   connect(): void {

@@ -376,6 +376,7 @@ export class TestRunner {
 
       const agentResult = await AgentService.createAgent({
         profile,
+        testRunId: testId,
         minecraftServer: {
           host: testRun.config.minecraftServer.host,
           port: testRun.config.minecraftServer.port,

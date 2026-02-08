@@ -66,6 +66,7 @@ export class AgentSpawner {
           host: config.minecraftBot.host,
           port: config.minecraftBot.port,
           version: config.minecraftBot.version,
+          ...(config.testId && { testId: config.testId }),
         },
       };
 

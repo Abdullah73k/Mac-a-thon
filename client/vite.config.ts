@@ -13,5 +13,10 @@ export default defineConfig({
   },
   server: {
     force: true, // Force re-optimize deps so profile list (Leader/Follower) updates
+    proxy: {
+      "/api": { target: "http://localhost:3000", changeOrigin: true },
+      "/ws": { target: "http://localhost:3000", ws: true },
+      "/health": { target: "http://localhost:3000", changeOrigin: true },
+    },
   },
 })

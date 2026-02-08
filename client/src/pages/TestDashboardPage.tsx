@@ -17,6 +17,7 @@ import { LoadingState } from "@/components/shared/LoadingState";
 import { RiArrowLeftLine, RiFileChartLine } from "@remixicon/react";
 
 import { fetchTest } from "@/lib/api/endpoints/tests";
+import { ApiClientError } from "@/lib/api/client";
 import { useTestWebSocket } from "@/hooks/use-test-websocket";
 import { useBotPositions } from "@/hooks/use-bot-positions";
 import { useLiveMetrics } from "@/hooks/use-live-metrics";
@@ -46,7 +47,13 @@ export default function TestDashboardPage() {
       setTest(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load test");
+      if (err instanceof ApiClientError && err.status === 404) {
+        setError(
+          "Test not found. It may have been cleared after a server restart (in-memory storage). Create a new test from the dashboard."
+        );
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to load test");
+      }
     } finally {
       setLoading(false);
     }
@@ -58,7 +65,15 @@ export default function TestDashboardPage() {
 
   // WebSocket subscriptions
   const ws = useTestWebSocket(testId);
-  const liveMetrics = useLiveMetrics(ws.metrics);
+
+  // Use WS metrics when live; fall back to persisted test.metrics so data shows after load or completion
+  const effectiveMetrics = ws.metrics ?? test?.metrics ?? null;
+  const liveMetrics = useLiveMetrics(effectiveMetrics);
+
+  // Refetch test when run completes so we show final status and persisted metrics
+  useEffect(() => {
+    if (ws.completed && testId) loadTest();
+  }, [ws.completed, testId, loadTest]);
 
   // Resolve testing agent IDs to their Minecraft bot IDs
   const testingAgentBotIds = useAgentBotIds(test?.testingAgentIds ?? []);

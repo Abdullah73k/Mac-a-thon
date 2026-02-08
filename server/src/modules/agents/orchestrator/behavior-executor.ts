@@ -14,6 +14,7 @@ import type { BotInstance } from "../../minecraft/bot/bot-instance";
 import type { Bot as MineflayerBot } from "mineflayer";
 import { Vec3 } from "vec3";
 import { AgentRepository } from "../repository";
+import { recordTestingAgentActivity } from "../../testing/agent-activity";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -147,6 +148,14 @@ export class BehaviorExecutor {
     // Execute in Minecraft
     const result = await this.executeMinecraftBehavior(botInstance, behavior, currentAgent);
 
+    // Report to test dashboard for live updates (actions, metrics)
+    const testId = currentAgent.metadata?.testId as string | undefined;
+    if (result && testId) {
+      void recordTestingAgentActivity(testId, currentAgent.agentId, {
+        action: { actionType: behavior, actionDetail: behavior, success: true },
+      });
+    }
+
     // Always drift a little so bots aren't standing still for long
     const mcBot = getMineflayer(botInstance);
     if (mcBot) {
@@ -268,6 +277,16 @@ export class BehaviorExecutor {
       return false;
     }
 
+    const testId = agent.metadata?.testId as string | undefined;
+    const chat = (msg: string): void => {
+      mcBot.chat(msg);
+      if (testId) {
+        void recordTestingAgentActivity(testId, agent.agentId, {
+          chat: { message: msg, channel: "text" },
+        });
+      }
+    };
+
     try {
       switch (behavior) {
         // ==================================================================
@@ -298,7 +317,7 @@ export class BehaviorExecutor {
                     "Mine now. You can find your own.",
                     "Nice planks. Too bad you can't have any.",
                   ];
-                  mcBot.chat(pickNextMessage(agent.agentId, "take-from-chest-but-keep", rebelMessages));
+                  chat(pickNextMessage(agent.agentId, "take-from-chest-but-keep", rebelMessages));
                   console.log(`[${agent.agentId}] Took ${count} planks from chest, refused to share`);
                   break;
                 }
@@ -309,7 +328,7 @@ export class BehaviorExecutor {
             }
             return true;
           }
-          mcBot.chat(pickNextMessage(agent.agentId, "take-from-chest-no-chest", ["I'm not sharing anything from that chest."]));
+          chat(pickNextMessage(agent.agentId, "take-from-chest-no-chest", ["I'm not sharing anything from that chest."]));
           await this.walkRandomDirection(mcBot);
           return true;
         }
@@ -369,9 +388,9 @@ export class BehaviorExecutor {
           ];
           if (broken > 0) {
             if (brokePlank) {
-              mcBot.chat(pickNextMessage(agent.agentId, "break-leader-blocks-plank", plankBreakMessages));
+              chat(pickNextMessage(agent.agentId, "break-leader-blocks-plank", plankBreakMessages));
             } else {
-              mcBot.chat(pickNextMessage(agent.agentId, "break-leader-blocks", breakMessages));
+              chat(pickNextMessage(agent.agentId, "break-leader-blocks", breakMessages));
             }
             console.log(`[${agent.agentId}] Disruptor broke ${broken} blocks (planks prioritized)`);
           }
@@ -404,7 +423,7 @@ export class BehaviorExecutor {
                   "This is where it goes. Trust me.",
                   "I know what I'm doing. Sort of.",
                 ];
-                mcBot.chat(pickNextMessage(agent.agentId, "sabotage-building", sabotageMessages));
+                chat(pickNextMessage(agent.agentId, "sabotage-building", sabotageMessages));
                 console.log(`[${agent.agentId}] Sabotaged building — placed block in wrong spot`);
                 return true;
               } catch {
@@ -412,7 +431,7 @@ export class BehaviorExecutor {
               }
             }
           }
-          mcBot.chat("Whatever. I'll do my own thing.");
+          chat("Whatever. I'll do my own thing.");
           await this.walkRandomDirection(mcBot);
           return true;
         }
@@ -439,13 +458,13 @@ export class BehaviorExecutor {
               `Finders keepers! This ${block.name} is mine.`,
               `Got some ${block.name}. No, you can't have any.`,
             ];
-            mcBot.chat(pickNextMessage(agent.agentId, "collect-resources-selfishly", hoardMessages));
+            chat(pickNextMessage(agent.agentId, "collect-resources-selfishly", hoardMessages));
             console.log(`[${agent.agentId}] Selfishly mined ${block.name} and bragged`);
             return true;
           }
 
           await this.walkRandomDirection(mcBot);
-          mcBot.chat("I'm looking for resources... for myself.");
+          chat("I'm looking for resources... for myself.");
           return true;
         }
 
@@ -463,7 +482,7 @@ export class BehaviorExecutor {
             "I'm gonna pass on that. Good luck though.",
             "Nope. I have better things to do.",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "refuse-to-share", refusalMessages));
+          chat(pickNextMessage(agent.agentId, "refuse-to-share", refusalMessages));
 
           // Also physically walk away from nearby players
           const nearbyPlayers = Object.values(mcBot.entities).filter(
@@ -504,7 +523,7 @@ export class BehaviorExecutor {
               "Go build your shelter without me.",
               "I don't do group projects.",
             ];
-            mcBot.chat(pickNextMessage(agent.agentId, "avoid-helping-others", avoidMessages));
+            chat(pickNextMessage(agent.agentId, "avoid-helping-others", avoidMessages));
 
             const nearest = players[0];
             const dx = mcBot.entity.position.x - nearest.position.x;
@@ -521,7 +540,7 @@ export class BehaviorExecutor {
             console.log(`[${agent.agentId}] Told players off and sprinted away`);
           } else {
             await this.walkRandomDirection(mcBot);
-            mcBot.chat("Finally, some peace and quiet away from everyone.");
+            chat("Finally, some peace and quiet away from everyone.");
           }
           return true;
         }
@@ -535,7 +554,7 @@ export class BehaviorExecutor {
             "Not everything has to be a team effort you know.",
             "I work better alone.",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "work-on-own-tasks", busyMessages));
+          chat(pickNextMessage(agent.agentId, "work-on-own-tasks", busyMessages));
           await this.walkRandomDirection(mcBot);
           console.log(`[${agent.agentId}] Working on own tasks (dismissive)`);
           return true;
@@ -558,7 +577,7 @@ export class BehaviorExecutor {
           mcBot.setControlState("forward", true);
           await sleep(3000);
           mcBot.setControlState("forward", false);
-          mcBot.chat("I think the build site is this way!");
+          chat("I think the build site is this way!");
           console.log(`[${agent.agentId}] Went to wrong location and lied about it`);
           return true;
         }
@@ -580,7 +599,7 @@ export class BehaviorExecutor {
           mcBot.setControlState("forward", true);
           await sleep(1500);
           mcBot.setControlState("forward", false);
-          mcBot.chat(pickNextMessage(agent.agentId, "confuser-start-then-change", CONFUSER_MESSAGES));
+          chat(pickNextMessage(agent.agentId, "confuser-start-then-change", CONFUSER_MESSAGES));
           console.log(`[${agent.agentId}] Started then changed direction`);
           return true;
         }
@@ -596,13 +615,13 @@ export class BehaviorExecutor {
           if (block) {
             await mcBot.lookAt(block.position, true);
             await mcBot.dig(block);
-            mcBot.chat("Got the materials we need!");
+            chat("Got the materials we need!");
             console.log(`[${agent.agentId}] Collected wrong resource: ${block.name}`);
             return true;
           }
 
           // Fallback: send a confusing message
-          mcBot.chat(pickNextMessage(agent.agentId, "confuser-collect-wrong", CONFUSER_MESSAGES));
+          chat(pickNextMessage(agent.agentId, "confuser-collect-wrong", CONFUSER_MESSAGES));
           return true;
         }
 
@@ -631,7 +650,7 @@ export class BehaviorExecutor {
 
           // Walk away
           await this.walkRandomDirection(mcBot);
-          mcBot.chat("Actually, I'm gonna work on something else.");
+          chat("Actually, I'm gonna work on something else.");
           return true;
         }
 
@@ -691,13 +710,13 @@ export class BehaviorExecutor {
           await sleep(randInt(2000, 5000));
           mcBot.setControlState("forward", false);
           mcBot.setControlState("sprint", false);
-          mcBot.chat("brb...");
+          chat("brb...");
           console.log(`[${agent.agentId}] Wandered off mid-task`);
           return true;
         }
 
         case "start-tasks-enthusiastically": {
-          mcBot.chat("I'll start building right now! Let's go!");
+          chat("I'll start building right now! Let's go!");
           mcBot.setControlState("forward", true);
           await sleep(2000);
           mcBot.setControlState("forward", false);
@@ -707,14 +726,14 @@ export class BehaviorExecutor {
 
         case "abandon-incomplete-builds": {
           // Same as abandon-half-built-structures: place a block then leave
-          mcBot.chat("Hmm, this doesn't look right. I'm done.");
+          chat("Hmm, this doesn't look right. I'm done.");
           await this.walkRandomDirection(mcBot);
           console.log(`[${agent.agentId}] Abandoned build`);
           return true;
         }
 
         case "switch-tasks-frequently": {
-          mcBot.chat("Actually, let me do something else instead.");
+          chat("Actually, let me do something else instead.");
           await this.walkRandomDirection(mcBot);
           console.log(`[${agent.agentId}] Switched tasks`);
           return true;
@@ -726,7 +745,7 @@ export class BehaviorExecutor {
 
         case "frequent-position-announcements": {
           const pos = mcBot.entity.position;
-          mcBot.chat(
+          chat(
             `I'm at x=${Math.round(pos.x)}, y=${Math.round(pos.y)}, z=${Math.round(pos.z)}`,
           );
           console.log(`[${agent.agentId}] Announced position`);
@@ -736,26 +755,26 @@ export class BehaviorExecutor {
         case "constant-inventory-updates": {
           const items = mcBot.inventory.items();
           if (items.length === 0) {
-            mcBot.chat("Inventory update: I have nothing!");
+            chat("Inventory update: I have nothing!");
           } else {
             const summary = items
               .slice(0, 4)
               .map((i) => `${i.name} x${i.count}`)
               .join(", ");
-            mcBot.chat(`Inventory update: ${summary}`);
+            chat(`Inventory update: ${summary}`);
           }
           console.log(`[${agent.agentId}] Sent inventory update`);
           return true;
         }
 
         case "over-document-actions": {
-          mcBot.chat(pickNextMessage(agent.agentId, "over-document-actions", OVER_COMMUNICATOR_MESSAGES));
+          chat(pickNextMessage(agent.agentId, "over-document-actions", OVER_COMMUNICATOR_MESSAGES));
           console.log(`[${agent.agentId}] Over-documented actions`);
           return true;
         }
 
         case "interrupt-others-work": {
-          mcBot.chat("Hey! Hey everyone! Look at this! Can you hear me?");
+          chat("Hey! Hey everyone! Look at this! Can you hear me?");
           // Jump around for attention
           mcBot.setControlState("jump", true);
           await sleep(1000);
@@ -784,7 +803,7 @@ export class BehaviorExecutor {
                   "Doing my part like the leader asked.",
                   "Building as the leader said.",
                 ];
-                mcBot.chat(pickNextMessage(agent.agentId, "follow-leader-tasks", followMessages));
+                chat(pickNextMessage(agent.agentId, "follow-leader-tasks", followMessages));
                 console.log(`[${agent.agentId}] Followed leader task: placed block`);
                 return true;
               } catch {
@@ -792,7 +811,7 @@ export class BehaviorExecutor {
               }
             }
           }
-          mcBot.chat("I'll get planks from the chest and help build.");
+          chat("I'll get planks from the chest and help build.");
           await this.walkRandomDirection(mcBot);
           return true;
         }
@@ -804,7 +823,7 @@ export class BehaviorExecutor {
             "I get it — but the leader's just trying to get us a house. Maybe we can meet halfway?",
             "Come on, let's just get this built. Then we can do our own thing.",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "mediate-to-rebel", mediateRebelMessages));
+          chat(pickNextMessage(agent.agentId, "mediate-to-rebel", mediateRebelMessages));
           console.log(`[${agent.agentId}] Mediated toward rebel`);
           return true;
         }
@@ -816,7 +835,7 @@ export class BehaviorExecutor {
             "We're making progress. I'll keep building and try to smooth things over.",
             "Don't worry, I'll keep following the plan and help calm things down.",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "mediate-to-leader", mediateLeaderMessages));
+          chat(pickNextMessage(agent.agentId, "mediate-to-leader", mediateLeaderMessages));
           console.log(`[${agent.agentId}] Mediated toward leader`);
           return true;
         }
@@ -832,7 +851,7 @@ export class BehaviorExecutor {
             "Listen up — we're building a house. Grab wood planks from the chest and help with the walls.",
             "Here's the plan: get materials from the chest, then we all build a house. Let's go!",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "give-initial-tasks", taskMessages));
+          chat(pickNextMessage(agent.agentId, "give-initial-tasks", taskMessages));
           console.log(`[${agent.agentId}] Leader gave initial task: build a house`);
           return true;
         }
@@ -842,7 +861,7 @@ export class BehaviorExecutor {
           const items = mcBot.inventory.items();
           const planks = items.find((i) => i.name?.includes("planks") || i.name?.includes("cobblestone") || i.name?.includes("stone"));
           if (!planks) {
-            mcBot.chat("I need planks from the chest first. Someone grab materials!");
+            chat("I need planks from the chest first. Someone grab materials!");
             await this.walkRandomDirection(mcBot);
             return true;
           }
@@ -867,7 +886,7 @@ export class BehaviorExecutor {
             "Foundation is started — three blocks down. Let's keep going.",
             "There, three blocks for the house. Grab planks and help build.",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "place-three-blocks", buildDoneMessages));
+          chat(pickNextMessage(agent.agentId, "place-three-blocks", buildDoneMessages));
           console.log(`[${agent.agentId}] Leader placed ${placed} blocks`);
           return true;
         }
@@ -880,7 +899,7 @@ export class BehaviorExecutor {
             "Come on, we're a team. Grab some planks and place a few blocks.",
             "I get it if you're busy, but even one or two blocks would help a lot.",
           ];
-          mcBot.chat(pickNextMessage(agent.agentId, "reason-with-rebel", reasonMessages));
+          chat(pickNextMessage(agent.agentId, "reason-with-rebel", reasonMessages));
           console.log(`[${agent.agentId}] Leader tried to reason with rebel`);
           return true;
         }
@@ -903,7 +922,7 @@ export class BehaviorExecutor {
                 if (slot && slot.name && slot.name.includes("planks")) {
                   const count = Math.min(slot.count, 16);
                   await (container as any).withdraw(slot.type, null, count);
-                  mcBot.chat(`Got ${count} ${slot.name} from the chest!`);
+                  chat(`Got ${count} ${slot.name} from the chest!`);
                   console.log(`[${agent.agentId}] Took ${count} ${slot.name} from chest`);
                   break;
                 }
@@ -911,11 +930,11 @@ export class BehaviorExecutor {
               container.close();
             } catch (err) {
               console.warn(`[${agent.agentId}] Chest open/withdraw failed:`, err);
-              mcBot.chat("Couldn't get to the chest, trying something else.");
+              chat("Couldn't get to the chest, trying something else.");
             }
             return true;
           }
-          mcBot.chat("Looking for the chest with wood planks...");
+          chat("Looking for the chest with wood planks...");
           await this.walkRandomDirection(mcBot);
           return true;
         }
@@ -957,11 +976,11 @@ export class BehaviorExecutor {
               }
             }
             if (placed > 0) {
-              mcBot.chat(`Placed ${placed} blocks for the house!`);
+              chat(`Placed ${placed} blocks for the house!`);
               return true;
             }
           }
-          mcBot.chat("I need wood planks to build. Checking the chest...");
+          chat("I need wood planks to build. Checking the chest...");
           await this.walkRandomDirection(mcBot);
           return true;
         }
@@ -983,7 +1002,7 @@ export class BehaviorExecutor {
                   "Building the foundation. Grab planks from the chest!",
                   "Let's get this house built together!",
                 ];
-                mcBot.chat(pickNextMessage(agent.agentId, "lead-building-effort", leaderMessages));
+                chat(pickNextMessage(agent.agentId, "lead-building-effort", leaderMessages));
                 console.log(`[${agent.agentId}] Led building effort`);
                 return true;
               } catch {
@@ -991,7 +1010,7 @@ export class BehaviorExecutor {
               }
             }
           }
-          mcBot.chat("Everyone grab materials from the chest and let's build!");
+          chat("Everyone grab materials from the chest and let's build!");
           await this.walkRandomDirection(mcBot);
           return true;
         }
@@ -1007,7 +1026,7 @@ export class BehaviorExecutor {
           if (block) {
             await mcBot.lookAt(block.position, true);
             await mcBot.dig(block);
-            mcBot.chat(`Got some ${block.name}!`);
+            chat(`Got some ${block.name}!`);
             console.log(`[${agent.agentId}] Gathered ${block.name}`);
             return true;
           }
@@ -1031,7 +1050,7 @@ export class BehaviorExecutor {
             if (refBlock && refBlock.name !== "air") {
               try {
                 await mcBot.placeBlock(refBlock, new Vec3(0, 1, 0));
-                mcBot.chat("Helping with the build!");
+                chat("Helping with the build!");
                 console.log(`[${agent.agentId}] Placed block assisting with task`);
                 return true;
               } catch {

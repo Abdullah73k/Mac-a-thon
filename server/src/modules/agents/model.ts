@@ -68,6 +68,8 @@ export const AgentConfigSchema = t.Object({
   customPromptOverrides: t.Optional(t.Record(t.String(), t.String())),
   behaviorIntensity: t.Number({ minimum: 0, maximum: 1 }),
   spawnTeleport: t.Optional(SpawnTeleportSchema),
+  /** When set, agent activity is reported to this test run for live dashboard updates. */
+  testId: t.Optional(t.String()),
 });
 export type AgentConfig = typeof AgentConfigSchema.static;
 
