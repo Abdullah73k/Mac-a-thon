@@ -9,7 +9,8 @@
     "db:push": "bunx --bun prisma db push",
     "db:studio": "bunx --bun prisma studio",
     "db:migrate": "bunx --bun prisma migrate dev",
-    "db:seed": "bunx --bun prisma db seed"
+    "db:seed": "bunx --bun prisma db seed",
+    "warehouse:schema": "bun run warehouse/run-schema.ts"
   },
   "dependencies": {
     "@discordjs/voice": "^0.19.0",
