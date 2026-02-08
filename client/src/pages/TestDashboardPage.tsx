@@ -20,6 +20,7 @@ import { fetchTest } from "@/lib/api/endpoints/tests";
 import { useTestWebSocket } from "@/hooks/use-test-websocket";
 import { useBotPositions } from "@/hooks/use-bot-positions";
 import { useLiveMetrics } from "@/hooks/use-live-metrics";
+import { useAgentBotIds } from "@/hooks/use-agent-bot-ids";
 import type { TestRun } from "@/types/test";
 
 import { TestStatusCard } from "../features/test-dashboard/components/TestStatusCard";
@@ -59,11 +60,14 @@ export default function TestDashboardPage() {
   const ws = useTestWebSocket(testId);
   const liveMetrics = useLiveMetrics(ws.metrics);
 
+  // Resolve testing agent IDs to their Minecraft bot IDs
+  const testingAgentBotIds = useAgentBotIds(test?.testingAgentIds ?? []);
+
   // Collect all bot IDs for minecraft WS subscription
   const botIds = test
     ? [
         ...(test.targetBotId ? [test.targetBotId] : []),
-        ...test.testingAgentIds,
+        ...testingAgentBotIds,
       ]
     : [];
   const { bots } = useBotPositions(botIds);
